@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.piledrive.lib_compose_components.ui.theme.custom.AppTheme
 import com.piledrive.sample_mqtt.ui.nav.NavRoute
 import com.piledrive.sample_mqtt.ui.theme.SampleComposeTheme
 import com.piledrive.sample_mqtt.ui.util.previewMainContentFlow
@@ -51,7 +52,7 @@ object MainScreen : NavRoute {
 @Preview
 @Composable
 fun MainPreview() {
-	SampleComposeTheme {
+	AppTheme {
 		val contentState = previewMainContentFlow()
 		MainScreen.drawContent(
 			contentState

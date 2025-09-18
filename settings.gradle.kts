@@ -25,5 +25,4 @@ rootProject.name = "app-template"
 include(":app")
 // composite build config
 // list private library git submodules
-//includeBuild("lib-retrofit-moshi")
-//includeBuild("lib-datastore")
+includeBuild("lib-compose-components")
