@@ -1,5 +1,5 @@
 <resources>
-	<string name="app_name">template</string>
+	<string name="app_name">MQTT Sample</string>
 
-	<string name="title_home">template</string>
+	<string name="title_home">MQTT Sample</string>
 </resources>

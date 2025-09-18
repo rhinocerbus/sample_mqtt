@@ -1,4 +1,4 @@
-package com.piledrive.template.ui.theme
+package com.piledrive.sample_mqtt.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

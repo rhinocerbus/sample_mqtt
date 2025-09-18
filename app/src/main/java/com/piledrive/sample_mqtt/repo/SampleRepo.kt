@@ -1,4 +1,4 @@
-package com.piledrive.template.repo
+package com.piledrive.sample_mqtt.repo
 
 import dagger.hilt.android.scopes.ViewModelScoped
 import javax.inject.Inject

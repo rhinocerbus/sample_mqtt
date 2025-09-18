@@ -1,12 +1,12 @@
-package com.piledrive.template
+package com.piledrive.sample_mqtt
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import com.piledrive.template.ui.theme.SampleComposeTheme
-import com.piledrive.template.viewmodel.SampleViewModel
+import com.piledrive.sample_mqtt.ui.theme.SampleComposeTheme
+import com.piledrive.sample_mqtt.viewmodel.SampleViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
