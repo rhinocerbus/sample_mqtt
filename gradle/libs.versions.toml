@@ -21,6 +21,9 @@ uiTooling = "1.7.8"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
+# project
+hiveMQTT = "1.3.9"
+pahoMQTT = "1.1.0"
 
 [libraries]
 # Dependencies of the included build-logic
@@ -53,6 +56,10 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 ## internal libraries
 lib-compose-components = { module = "com.piledrive.lib_compose_components:lib" }
+# project
+hivemq-mqtt-client = { group = "com.hivemq", name = "hivemq-mqtt-client", version.ref = "hiveMQTT" }
+paho-mqtt-client = { group = "org.eclipse.paho", name = "org.eclipse.paho.client.mqttv3", version.ref = "pahoMQTT" }
+
 
 [plugins]
 # plugins of the included build-logic

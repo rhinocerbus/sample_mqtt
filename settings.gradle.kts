@@ -18,10 +18,11 @@ dependencyResolutionManagement {
 	repositories {
 		google()
 		mavenCentral()
+		maven(url = "https://repo.eclipse.org/content/repositories/paho-snapshots/")
 	}
 }
 
-rootProject.name = "app-template"
+rootProject.name = "MQTT Sample"
 include(":app")
 // composite build config
 // list private library git submodules

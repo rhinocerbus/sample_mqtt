@@ -68,6 +68,11 @@ dependencies {
 	// internal
 	implementation(libs.lib.compose.components)
 
+	// project
+	implementation(libs.hivemq.mqtt.client)
+	implementation(libs.paho.mqtt.client)
+
+
 	// testing
 	testImplementation(libs.junit)
 	androidTestImplementation(libs.androidx.junit)
