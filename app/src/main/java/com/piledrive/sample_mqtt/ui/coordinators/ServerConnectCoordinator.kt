@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 interface ServerConnectCoordinatorImpl {
 	val coroutineScope: CoroutineScope
@@ -24,6 +25,7 @@ interface ServerConnectCoordinatorImpl {
 	val onUsernameUpdated: (String) -> Unit
 	val onPasswordUpdated: (String) -> Unit
 	fun attemptConnect()
+	fun attemptDisconnect()
 }
 
 class ServerConnectCoordinator(
@@ -32,7 +34,7 @@ class ServerConnectCoordinator(
 	initServerUrl: String = "broker.hivemq.com",
 	initServerPort: Int = 1883,
 	initClientId: String = "",
-	initUsername: String = "",
+	initUsername: String = "test90734609-72456987-456",
 	initPassword: String = "",
 	initIsActive: Boolean = false,
 ) : ServerConnectCoordinatorImpl {
@@ -65,18 +67,34 @@ class ServerConnectCoordinator(
 	init {
 		coroutineScope.launch {
 			mqtt.connectionStateFlow.collect { state ->
-				_isActiveState.value = state == ConnectionStatus.IDLE
+				_isActiveState.value = state in listOf(ConnectionStatus.IDLE, ConnectionStatus.CLIENT_DISCONNECT, ConnectionStatus.SERVER_DISCONNECT)
 			}
 		}
 	}
 
 	override fun attemptConnect() {
+		val url = serverUrlState.value
+		val finalUrl = if(url.startsWith("tcp://")) url else "tcp://$url"
+		_serverUrlState.value = finalUrl
+
+		val clientId = clientIdState.value
+		val finalId = clientId.ifBlank { UUID.randomUUID().toString() }
+		_clientIdState.value = finalId
+
+		val user = usernameState.value
+		val finalUser = user.ifBlank { UUID.randomUUID().toString() }
+		_usernameState.value = finalUser
+
 		mqtt.connect(
-			url = serverUrlState.value,
+			url = finalUrl,
 			port = serverPortState.value,
-			clientId = clientIdState.value,
-			user = usernameState.value,
+			clientId = finalId,
+			user = finalUser,
 			pw = passwordState.value
 		)
+	}
+
+	override fun attemptDisconnect() {
+		mqtt.disconnect()
 	}
 }
