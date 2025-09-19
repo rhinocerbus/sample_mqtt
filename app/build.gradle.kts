@@ -38,6 +38,18 @@ android {
 	buildFeatures {
 		compose = true
 	}
+
+	packagingOptions {
+		resources {
+			excludes += "META-INF/*"
+			/*
+			excludes += "/META-INF/{AL2.0,LGPL2.1}"
+			excludes += "/META-INF/INDEX.LIST"
+			merges += "META-INF/LICENSE.md"
+			merges += "META-INF/LICENSE-notice.md"
+			 */
+		}
+	}
 }
 
 dependencies {
