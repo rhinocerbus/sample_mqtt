@@ -5,15 +5,14 @@ import com.piledrive.sample_mqtt.model.GenericMessage
 import com.piledrive.sample_mqtt.model.ConnectionStatus
 import com.piledrive.sample_mqtt.mqtt.client.MqttClientImpl
 import com.piledrive.sample_mqtt.mqtt.client.PahoMqttClient
+import dagger.Provides
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class MqttController() : MqttClientImpl {
-
-	//private val clientImpl: MqttClientImpl
-	private val clientImpl = PahoMqttClient()
+class MqttController @Inject constructor(val clientImpl: MqttClientImpl) : MqttClientImpl {
 
 	override fun connect(
 		url: String,
