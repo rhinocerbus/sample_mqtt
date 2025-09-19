@@ -2,7 +2,7 @@ package com.piledrive.sample_mqtt.mqtt.controller
 
 import com.piledrive.sample_mqtt.model.ClientError
 import com.piledrive.sample_mqtt.model.GenericMessage
-import com.piledrive.sample_mqtt.mqtt.client.ConnectionStatus
+import com.piledrive.sample_mqtt.model.ConnectionStatus
 import com.piledrive.sample_mqtt.mqtt.client.MqttClientImpl
 import com.piledrive.sample_mqtt.mqtt.client.PahoMqttClient
 import kotlinx.coroutines.flow.Flow

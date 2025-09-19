@@ -2,6 +2,7 @@ package com.piledrive.sample_mqtt.mqtt.client
 
 import com.hivemq.client.mqtt.MqttClient
 import com.piledrive.sample_mqtt.model.ClientError
+import com.piledrive.sample_mqtt.model.ConnectionStatus
 import com.piledrive.sample_mqtt.model.GenericMessage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
