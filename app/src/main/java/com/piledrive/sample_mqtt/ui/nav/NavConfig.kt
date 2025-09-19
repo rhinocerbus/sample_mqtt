@@ -47,9 +47,6 @@ fun RootNavHost() {
 
 		composable(route = MainScreen.routeValue) {
 			val viewModel: SampleViewModel = hiltViewModel<SampleViewModel>()
-			LaunchedEffect("load_content_on_launch") {
-				viewModel.reloadContent()
-			}
 			MainScreen.draw(
 				viewModel,
 			)
