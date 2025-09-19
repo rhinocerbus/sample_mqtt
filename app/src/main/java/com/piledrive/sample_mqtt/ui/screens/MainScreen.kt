@@ -9,15 +9,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.piledrive.lib_compose_components.ui.theme.custom.AppTheme
+import com.piledrive.sample_mqtt.mqtt.client.PreviewDummyMqttClient
+import com.piledrive.sample_mqtt.ui.coordinators.ServerConnectCoordinator
+import com.piledrive.sample_mqtt.ui.coordinators.ServerConnectCoordinatorImpl
 import com.piledrive.sample_mqtt.ui.nav.NavRoute
-import com.piledrive.sample_mqtt.ui.theme.SampleComposeTheme
-import com.piledrive.sample_mqtt.ui.util.previewMainContentFlow
 import com.piledrive.sample_mqtt.viewmodel.SampleViewModel
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 object MainScreen : NavRoute {
 	override val routeValue: String = "home"
@@ -27,19 +28,18 @@ object MainScreen : NavRoute {
 		viewModel: SampleViewModel,
 	) {
 		drawContent(
-			viewModel.contentState,
+			viewModel.serverConnectCoordinator,
 		)
 	}
 
 	@Composable
 	fun drawContent(
-		contentState: StateFlow<Int>,
+		serverCoordinator: ServerConnectCoordinatorImpl,
 	) {
-		val homeState = contentState.collectAsState().value
 		Scaffold(
 			topBar = {
 				TopAppBar(
-					title = { Text("MQTT Sample")},
+					title = { Text("MQTT Sample") },
 				)
 			},
 			content = { innerPadding ->
@@ -53,9 +53,12 @@ object MainScreen : NavRoute {
 @Composable
 fun MainPreview() {
 	AppTheme {
-		val contentState = previewMainContentFlow()
+		val connectionCoordinator = ServerConnectCoordinator(
+			coroutineScope = CoroutineScope(Dispatchers.Default),
+			mqtt = PreviewDummyMqttClient()
+		)
 		MainScreen.drawContent(
-			contentState
+			serverCoordinator = connectionCoordinator
 		)
 	}
 }
