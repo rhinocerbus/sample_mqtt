@@ -16,7 +16,7 @@ import org.eclipse.paho.client.mqttv3.MqttCallback
 import org.eclipse.paho.client.mqttv3.MqttClient
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttMessage
-
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 
 
 class PahoMqttClient() : MqttClientImpl {
@@ -62,7 +62,7 @@ class PahoMqttClient() : MqttClientImpl {
 	override val connectionStateFlow: StateFlow<ConnectionStatus> = _connectionStateFlow
 
 	override fun connect(url: String, port: Int, clientId: String, user: String, pw: String) {
-		val safeClient = MqttClient("$url:$port", clientId).apply {
+		val safeClient = MqttClient("$url:$port", clientId, MemoryPersistence()).apply {
 			setCallback(clientCallback)
 		}
 		// circle back on 3rd MqttClientPersistence param for caching, possible offline support?
