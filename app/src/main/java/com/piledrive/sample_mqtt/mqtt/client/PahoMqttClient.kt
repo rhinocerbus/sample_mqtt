@@ -33,6 +33,7 @@ class PahoMqttClient() : MqttClientImpl {
 
 	val clientCallback = object : MqttCallback {
 		override fun connectionLost(cause: Throwable?) {
+			_connectionStateFlow.value = ConnectionStatus.INTERRUPTED
 		}
 
 		override fun messageArrived(topic: String?, message: MqttMessage?) {
