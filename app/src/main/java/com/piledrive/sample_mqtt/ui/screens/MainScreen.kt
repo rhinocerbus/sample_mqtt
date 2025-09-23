@@ -99,84 +99,16 @@ object MainScreen : NavRoute {
 		Column(modifier) {
 			when (activeTab.tab) {
 				TabDestinations.SERVER -> {
-					ServerConnectionContent(serverCoordinator)
+					ServerTab(serverCoordinator)
 				}
 
 				TabDestinations.MESSAGES -> {
-					ServerConnectionContent(serverCoordinator)
+					MessagesTab(serverCoordinator)
 				}
 			}
 		}
 	}
 
-	@Composable
-	private fun ServerConnectionContent(serverCoordinator: ServerConnectCoordinatorImpl) {
-		val isEnabled = serverCoordinator.isActiveState.collectAsState().value
-
-		val serverUrl = serverCoordinator.serverUrlState.collectAsState()
-		OutlinedTextField(
-			value = serverUrl.value,
-			label = { Text("Server URL") },
-			onValueChange = { serverCoordinator.onServerUrlUpdated(it) },
-			enabled = isEnabled
-		)
-
-		val serverPort = serverCoordinator.serverPortState.collectAsState()
-		OutlinedTextField(
-			value = serverPort.value.toString(),
-			label = { Text("Server port") },
-			onValueChange = { serverCoordinator.onServerPortUpdated(it.toInt()) },
-			enabled = isEnabled
-		)
-
-		val clientId = serverCoordinator.clientIdState.collectAsState()
-		OutlinedTextField(
-			value = clientId.value,
-			label = { Text("Client id") },
-			onValueChange = { serverCoordinator.onClientIdUpdated(it) },
-			enabled = isEnabled
-		)
-
-		val username = serverCoordinator.usernameState.collectAsState()
-		OutlinedTextField(
-			value = username.value,
-			label = { Text("Username") },
-			onValueChange = { serverCoordinator.onUsernameUpdated(it) },
-			enabled = isEnabled
-		)
-
-		val password = serverCoordinator.passwordState.collectAsState()
-		OutlinedTextField(
-			value = password.value,
-			label = { Text("Password") },
-			onValueChange = { serverCoordinator.onPasswordUpdated(it) },
-			enabled = isEnabled
-		)
-
-		val status = serverCoordinator.connectionState.collectAsState()
-		if (status.value == ConnectionStatus.CONNECTED) {
-			Button(
-				onClick = {
-					serverCoordinator.attemptDisconnect()
-				},
-			) {
-				Text("Disconnect")
-			}
-		} else {
-			Button(
-				onClick = {
-					serverCoordinator.attemptConnect()
-				},
-				enabled = isEnabled,
-			) {
-				Text("Connect")
-			}
-		}
-
-		if (status.value != ConnectionStatus.IDLE) {
-			Text("Connection status: ${status.value.name}")
-		}
-	}
 }
 
 @Preview
