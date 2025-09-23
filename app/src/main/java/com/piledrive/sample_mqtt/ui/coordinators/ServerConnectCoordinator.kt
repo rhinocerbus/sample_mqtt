@@ -1,8 +1,7 @@
 package com.piledrive.sample_mqtt.ui.coordinators
 
-import com.piledrive.sample_mqtt.model.ConnectionStatus
+import com.piledrive.sample_mqtt.mqtt.model.MqttConnectionStatus
 import com.piledrive.sample_mqtt.mqtt.client.MqttClientImpl
-import com.piledrive.sample_mqtt.mqtt.controller.MqttController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +17,7 @@ interface ServerConnectCoordinatorImpl {
 	val usernameState: StateFlow<String>
 	val passwordState: StateFlow<String>
 	val isActiveState: StateFlow<Boolean>
-	val connectionState: StateFlow<ConnectionStatus>
+	val connectionState: StateFlow<MqttConnectionStatus>
 	val onServerUrlUpdated: (String) -> Unit
 	val onServerPortUpdated: (Int) -> Unit
 	val onClientIdUpdated: (String) -> Unit
@@ -56,7 +55,7 @@ class ServerConnectCoordinator(
 	private val _isActiveState: MutableStateFlow<Boolean> = MutableStateFlow(initIsActive)
 	override val isActiveState: StateFlow<Boolean> = _isActiveState
 
-	override val connectionState: StateFlow<ConnectionStatus> = mqtt.connectionStateFlow
+	override val connectionState: StateFlow<MqttConnectionStatus> = mqtt.connectionStateFlow
 
 	override val onServerUrlUpdated: (String) -> Unit = { _serverUrlState.value = it }
 	override val onServerPortUpdated: (Int) -> Unit = { _serverPortState.value = it }

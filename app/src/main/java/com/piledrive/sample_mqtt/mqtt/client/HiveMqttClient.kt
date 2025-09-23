@@ -1,9 +1,10 @@
 package com.piledrive.sample_mqtt.mqtt.client
 
 import com.hivemq.client.mqtt.MqttClient
-import com.piledrive.sample_mqtt.model.ClientError
-import com.piledrive.sample_mqtt.model.ConnectionStatus
-import com.piledrive.sample_mqtt.model.GenericMessage
+import com.piledrive.sample_mqtt.mqtt.model.MqttClientError
+import com.piledrive.sample_mqtt.mqtt.model.MqttConnectionStatus
+import com.piledrive.sample_mqtt.mqtt.model.MqttGenericMessage
+import com.piledrive.sample_mqtt.mqtt.model.MqttGenericTopic
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -34,10 +35,8 @@ class HiveMqttClient() : MqttClientImpl {
 		TODO("Not yet implemented")
 	}
 
-	override val connectionStateFlow: StateFlow<ConnectionStatus>
-		get() = TODO("Not yet implemented")
-	override val latestMessageStateFlow: StateFlow<GenericMessage?>
-		get() = TODO("Not yet implemented")
-	override val clientErrorFlow: Flow<ClientError>
-		get() = TODO("Not yet implemented")
+	override val connectionStateFlow: StateFlow<MqttConnectionStatus>
+	override val subscribedTopicsStateFlow: StateFlow<List<MqttGenericTopic>>
+	override val latestMessageStateFlow: StateFlow<MqttGenericMessage?>
+	override val clientErrorFlow: Flow<MqttClientError>
 }

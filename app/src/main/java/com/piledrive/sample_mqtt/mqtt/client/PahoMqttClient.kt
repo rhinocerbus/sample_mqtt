@@ -1,8 +1,9 @@
 package com.piledrive.sample_mqtt.mqtt.client
 
-import com.piledrive.sample_mqtt.model.ClientError
-import com.piledrive.sample_mqtt.model.ConnectionStatus
-import com.piledrive.sample_mqtt.model.GenericMessage
+import com.piledrive.sample_mqtt.mqtt.model.MqttClientError
+import com.piledrive.sample_mqtt.mqtt.model.MqttConnectionStatus
+import com.piledrive.sample_mqtt.mqtt.model.MqttGenericMessage
+import com.piledrive.sample_mqtt.mqtt.model.MqttGenericTopic
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,8 +50,8 @@ class PahoMqttClient() : MqttClientImpl {
 
 	private var client: MqttClient? = null
 
-	private val _clientErrorChannel = Channel<ClientError>()
-	override val clientErrorFlow: Flow<ClientError> = _clientErrorChannel.receiveAsFlow()
+	private val _clientErrorChannel = Channel<MqttClientError>()
+	override val clientErrorFlow: Flow<MqttClientError> = _clientErrorChannel.receiveAsFlow()
 
 	/////////////////////////////////////////////////
 	//  endregion
@@ -59,8 +60,8 @@ class PahoMqttClient() : MqttClientImpl {
 	//  region Connection
 	/////////////////////////////////////////////////
 
-	private val _connectionStateFlow: MutableStateFlow<ConnectionStatus> = MutableStateFlow(ConnectionStatus.IDLE)
-	override val connectionStateFlow: StateFlow<ConnectionStatus> = _connectionStateFlow
+	private val _connectionStateFlow: MutableStateFlow<MqttConnectionStatus> = MutableStateFlow(MqttConnectionStatus.IDLE)
+	override val connectionStateFlow: StateFlow<MqttConnectionStatus> = _connectionStateFlow
 
 	override fun connect(url: String, port: Int, clientId: String, user: String, pw: String) {
 		val safeClient = MqttClient("$url:$port", clientId, MemoryPersistence()).apply {
@@ -144,8 +145,8 @@ class PahoMqttClient() : MqttClientImpl {
 	//  region Messages
 	/////////////////////////////////////////////////
 
-	private val _latestMessageStateFlow: MutableStateFlow<GenericMessage?> = MutableStateFlow(null)
-	override val latestMessageStateFlow: StateFlow<GenericMessage?> = _latestMessageStateFlow
+	private val _latestMessageStateFlow: MutableStateFlow<MqttGenericMessage?> = MutableStateFlow(null)
+	override val latestMessageStateFlow: StateFlow<MqttGenericMessage?> = _latestMessageStateFlow
 
 	override fun publish(
 		topic: String,

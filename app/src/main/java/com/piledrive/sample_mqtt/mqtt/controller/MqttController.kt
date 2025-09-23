@@ -1,11 +1,10 @@
 package com.piledrive.sample_mqtt.mqtt.controller
 
-import com.piledrive.sample_mqtt.model.ClientError
-import com.piledrive.sample_mqtt.model.GenericMessage
-import com.piledrive.sample_mqtt.model.ConnectionStatus
+import com.piledrive.sample_mqtt.mqtt.model.MqttClientError
+import com.piledrive.sample_mqtt.mqtt.model.MqttGenericMessage
+import com.piledrive.sample_mqtt.mqtt.model.MqttConnectionStatus
 import com.piledrive.sample_mqtt.mqtt.client.MqttClientImpl
-import com.piledrive.sample_mqtt.mqtt.client.PahoMqttClient
-import dagger.Provides
+import com.piledrive.sample_mqtt.mqtt.model.MqttGenericTopic
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
@@ -31,7 +30,8 @@ class MqttController @Inject constructor(val clientImpl: MqttClientImpl) : MqttC
 	override fun publish(topic: String, msg: String, qos: Int, retained: Boolean) =
 		clientImpl.publish(topic, msg, qos, retained)
 
-	override val connectionStateFlow: StateFlow<ConnectionStatus> = clientImpl.connectionStateFlow
-	override val latestMessageStateFlow: StateFlow<GenericMessage?> = clientImpl.latestMessageStateFlow
-	override val clientErrorFlow: Flow<ClientError> = clientImpl.clientErrorFlow
+	override val connectionStateFlow: StateFlow<MqttConnectionStatus> = clientImpl.connectionStateFlow
+	override val subscribedTopicsStateFlow: StateFlow<List<MqttGenericTopic>> = clientImpl.subscribedTopicsStateFlow
+	override val latestMessageStateFlow: StateFlow<MqttGenericMessage?> = clientImpl.latestMessageStateFlow
+	override val clientErrorFlow: Flow<MqttClientError> = clientImpl.clientErrorFlow
 }
