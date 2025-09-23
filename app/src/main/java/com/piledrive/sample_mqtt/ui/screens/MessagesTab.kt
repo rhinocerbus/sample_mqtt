@@ -1,97 +1,65 @@
 package com.piledrive.sample_mqtt.ui.screens
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.piledrive.lib_compose_components.ui.theme.custom.AppTheme
-import com.piledrive.sample_mqtt.model.ConnectionStatus
 import com.piledrive.sample_mqtt.mqtt.client.PreviewDummyMqttClient
-import com.piledrive.sample_mqtt.ui.coordinators.ServerConnectCoordinator
-import com.piledrive.sample_mqtt.ui.coordinators.ServerConnectCoordinatorImpl
+import com.piledrive.sample_mqtt.ui.coordinators.MessagesCoordinator
+import com.piledrive.sample_mqtt.ui.coordinators.MessagesCoordinatorImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
 
 @Composable
-fun MessagesTab(serverCoordinator: ServerConnectCoordinatorImpl) {
-	val isEnabled = serverCoordinator.isActiveState.collectAsState().value
-
-	val serverUrl = serverCoordinator.serverUrlState.collectAsState()
-	OutlinedTextField(
-		value = serverUrl.value,
-		label = { Text("Server URL") },
-		onValueChange = { serverCoordinator.onServerUrlUpdated(it) },
-		enabled = isEnabled
-	)
-
-	val serverPort = serverCoordinator.serverPortState.collectAsState()
-	OutlinedTextField(
-		value = serverPort.value.toString(),
-		label = { Text("Server port") },
-		onValueChange = { serverCoordinator.onServerPortUpdated(it.toInt()) },
-		enabled = isEnabled
-	)
-
-	val clientId = serverCoordinator.clientIdState.collectAsState()
-	OutlinedTextField(
-		value = clientId.value,
-		label = { Text("Client id") },
-		onValueChange = { serverCoordinator.onClientIdUpdated(it) },
-		enabled = isEnabled
-	)
-
-	val username = serverCoordinator.usernameState.collectAsState()
-	OutlinedTextField(
-		value = username.value,
-		label = { Text("Username") },
-		onValueChange = { serverCoordinator.onUsernameUpdated(it) },
-		enabled = isEnabled
-	)
-
-	val password = serverCoordinator.passwordState.collectAsState()
-	OutlinedTextField(
-		value = password.value,
-		label = { Text("Password") },
-		onValueChange = { serverCoordinator.onPasswordUpdated(it) },
-		enabled = isEnabled
-	)
-
-	val status = serverCoordinator.connectionState.collectAsState()
-	if (status.value == ConnectionStatus.CONNECTED) {
-		Button(
-			onClick = {
-				serverCoordinator.attemptDisconnect()
-			},
-		) {
-			Text("Disconnect")
+fun MessagesTab(modifier: Modifier, messagesCoordinator: MessagesCoordinatorImpl) {
+	Column(modifier) {
+		val topicInput = messagesCoordinator.topicInputState.collectAsState()
+		OutlinedTextField(
+			value = topicInput.value,
+			label = { Text("Topic") },
+			onValueChange = { messagesCoordinator.onTopicInputUpdated(it) },
+		)
+		Button(onClick = { messagesCoordinator.subscribeTopic() }) {
+			Text("Subscribe")
 		}
-	} else {
-		Button(
-			onClick = {
-				serverCoordinator.attemptConnect()
-			},
-			enabled = isEnabled,
-		) {
-			Text("Connect")
-		}
+
+		TopicsList(messagesCoordinator)
 	}
+}
 
-	if (status.value != ConnectionStatus.IDLE) {
-		Text("Connection status: ${status.value.name}")
+@Composable
+private fun TopicsList(messagesCoordinator: MessagesCoordinatorImpl) {
+	val topics = messagesCoordinator.activeTopicsState.collectAsState()
+
+	Text("Active topics:")
+
+	LazyColumn() {
+		itemsIndexed(items = topics.value, key = { _, topic -> topic.name }) {_, topic ->
+			Row() {
+				Text(topic.name)
+			}
+		}
 	}
 }
 
 @Preview
 @Composable
-private fun ServerTabPreview() {
+private fun MessagesTabPreview() {
 	AppTheme {
-		val connectionCoordinator = ServerConnectCoordinator(
+		val coordinator = MessagesCoordinator(
 			coroutineScope = CoroutineScope(Dispatchers.Default),
-			mqtt = PreviewDummyMqttClient()
+			mqtt = PreviewDummyMqttClient(),
+			initActiveTopics = listOf("topic/a", "topic/b")
 		)
-		MessagesTab(connectionCoordinator)
+		MessagesTab(Modifier, coordinator)
 	}
 }

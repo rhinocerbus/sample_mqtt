@@ -66,7 +66,7 @@ class ServerConnectCoordinator(
 	init {
 		coroutineScope.launch {
 			mqtt.connectionStateFlow.collect { state ->
-				_isActiveState.value = state in listOf(ConnectionStatus.IDLE, ConnectionStatus.CLIENT_DISCONNECT, ConnectionStatus.SERVER_DISCONNECT)
+				_isActiveState.value = state in listOf(MqttConnectionStatus.IDLE, MqttConnectionStatus.CLIENT_DISCONNECT, MqttConnectionStatus.SERVER_DISCONNECT)
 			}
 		}
 	}
