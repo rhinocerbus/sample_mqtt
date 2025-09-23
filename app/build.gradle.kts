@@ -84,6 +84,8 @@ dependencies {
 	implementation(libs.hivemq.mqtt.client)
 	implementation(libs.paho.mqtt.client)
 
+	// logging
+	implementation(libs.timber)
 
 	// testing
 	testImplementation(libs.junit)
