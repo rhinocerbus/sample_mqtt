@@ -52,6 +52,7 @@ class MessagesCoordinator(
 	}
 
 	override fun subscribeTopic() {
+		mqtt.subscribe(topicInputState.value, 1)
 	}
 
 	override fun unsubscribeTopic(topic: String) {
