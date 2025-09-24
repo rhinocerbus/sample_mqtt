@@ -35,6 +35,10 @@ class HiveMqttClient() : MqttClientImpl {
 		TODO("Not yet implemented")
 	}
 
+	override fun clearState() {
+		TODO("Not yet implemented")
+	}
+
 	override val connectionStateFlow: StateFlow<MqttConnectionStatus>
 	override val subscribedTopicsStateFlow: StateFlow<List<MqttGenericTopic>>
 	override val latestMessageStateFlow: StateFlow<MqttGenericMessage?>

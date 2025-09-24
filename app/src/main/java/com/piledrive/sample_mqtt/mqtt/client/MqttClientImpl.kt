@@ -18,6 +18,7 @@ interface MqttClientImpl {
 		qos: Int = 1,
 		retained: Boolean = false,
 	)
+	fun clearState()
 
 	val connectionStateFlow: StateFlow<MqttConnectionStatus>
 	val subscribedTopicsStateFlow: StateFlow<List<MqttGenericTopic>>

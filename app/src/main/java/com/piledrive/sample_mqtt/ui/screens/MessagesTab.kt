@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.piledrive.lib_compose_components.ui.forms.observable.TextFormFieldState
 import com.piledrive.lib_compose_components.ui.theme.custom.AppTheme
 import com.piledrive.sample_mqtt.mqtt.client.PreviewDummyMqttClient
 import com.piledrive.sample_mqtt.ui.coordinators.MessagesCoordinator
@@ -22,17 +23,23 @@ import kotlinx.coroutines.Dispatchers
 @Composable
 fun MessagesTab(modifier: Modifier, messagesCoordinator: MessagesCoordinatorImpl) {
 	Column(modifier) {
-		val topicInput = messagesCoordinator.topicInputState.collectAsState()
-		OutlinedTextField(
-			value = topicInput.value,
-			label = { Text("Topic") },
-			onValueChange = { messagesCoordinator.onTopicInputUpdated(it) },
-		)
-		Button(onClick = { messagesCoordinator.subscribeTopic() }) {
-			Text("Subscribe")
-		}
-
+		TopicInput(messagesCoordinator.topicInputFormState, onSubscribe = { messagesCoordinator.subscribeTopic() })
 		TopicsList(messagesCoordinator)
+		MessagesList(messagesCoordinator)
+	}
+}
+
+@Composable
+private fun TopicInput(topicInputFormState: TextFormFieldState, onSubscribe: () -> Unit) {
+	val topicInput = topicInputFormState.currentValueState.collectAsState()
+	val inputValid = topicInputFormState.isValidState.collectAsState()
+	OutlinedTextField(
+		value = topicInput.value,
+		label = { Text("Topic") },
+		onValueChange = { topicInputFormState.submitFieldChange(it) },
+	)
+	Button(enabled = inputValid.value, onClick = { onSubscribe.invoke() }) {
+		Text("Subscribe")
 	}
 }
 
@@ -43,9 +50,24 @@ private fun TopicsList(messagesCoordinator: MessagesCoordinatorImpl) {
 	Text("Active topics:")
 
 	LazyColumn() {
-		itemsIndexed(items = topics.value, key = { _, topic -> topic.name }) {_, topic ->
+		itemsIndexed(items = topics.value, key = { _, topic -> topic.name }) { _, topic ->
 			Row() {
 				Text(topic.name)
+			}
+		}
+	}
+}
+
+@Composable
+private fun MessagesList(messagesCoordinator: MessagesCoordinatorImpl) {
+	val messages = messagesCoordinator.recentMessagesState.collectAsState()
+
+	Text("Recent messages:")
+
+	LazyColumn() {
+		itemsIndexed(items = messages.value, key = { _, msg -> msg.message }) { _, msg ->
+			Row() {
+				Text(text = "@${msg.topic}: ${msg.message}")
 			}
 		}
 	}

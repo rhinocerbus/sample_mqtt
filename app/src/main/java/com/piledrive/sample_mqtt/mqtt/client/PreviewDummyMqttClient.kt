@@ -12,14 +12,15 @@ import kotlinx.coroutines.flow.receiveAsFlow
 
 class PreviewDummyMqttClient(
 	previewStatus: MqttConnectionStatus = MqttConnectionStatus.IDLE
-): MqttClientImpl {
+) : MqttClientImpl {
 	override fun connect(
 		url: String,
 		port: Int,
 		clientId: String,
 		user: String,
 		pw: String
-	) {}
+	) {
+	}
 
 	override fun disconnect() {}
 
@@ -28,6 +29,8 @@ class PreviewDummyMqttClient(
 	override fun unsubscribe(topic: String) {}
 
 	override fun publish(topic: String, msg: String, qos: Int, retained: Boolean) {}
+
+	override fun clearState() {}
 
 	override val connectionStateFlow: StateFlow<MqttConnectionStatus> = MutableStateFlow(previewStatus)
 	override val subscribedTopicsStateFlow: StateFlow<List<MqttGenericTopic>> = MutableStateFlow(listOf())

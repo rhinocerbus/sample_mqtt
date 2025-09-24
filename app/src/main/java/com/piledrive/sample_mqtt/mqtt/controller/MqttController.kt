@@ -1,9 +1,9 @@
 package com.piledrive.sample_mqtt.mqtt.controller
 
-import com.piledrive.sample_mqtt.mqtt.model.MqttClientError
-import com.piledrive.sample_mqtt.mqtt.model.MqttGenericMessage
-import com.piledrive.sample_mqtt.mqtt.model.MqttConnectionStatus
 import com.piledrive.sample_mqtt.mqtt.client.MqttClientImpl
+import com.piledrive.sample_mqtt.mqtt.model.MqttClientError
+import com.piledrive.sample_mqtt.mqtt.model.MqttConnectionStatus
+import com.piledrive.sample_mqtt.mqtt.model.MqttGenericMessage
 import com.piledrive.sample_mqtt.mqtt.model.MqttGenericTopic
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +29,8 @@ class MqttController @Inject constructor(val clientImpl: MqttClientImpl) : MqttC
 
 	override fun publish(topic: String, msg: String, qos: Int, retained: Boolean) =
 		clientImpl.publish(topic, msg, qos, retained)
+
+	override fun clearState() = clientImpl.clearState()
 
 	override val connectionStateFlow: StateFlow<MqttConnectionStatus> = clientImpl.connectionStateFlow
 	override val subscribedTopicsStateFlow: StateFlow<List<MqttGenericTopic>> = clientImpl.subscribedTopicsStateFlow

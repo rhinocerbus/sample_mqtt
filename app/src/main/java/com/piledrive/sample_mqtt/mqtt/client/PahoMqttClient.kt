@@ -35,6 +35,7 @@ class PahoMqttClient() : MqttClientImpl {
 
 	val messageListener = IMqttMessageListener { topic, message ->
 		Timber.d("messageListener.messageArrived | topic: $topic | msg: $message")
+		_latestMessageStateFlow.value = MqttGenericMessage(topic ?: "NO_TOPIC", message?.toString() ?: "NO_MSG")
 	}
 
 	val clientCallback = object : MqttCallback {
@@ -45,6 +46,7 @@ class PahoMqttClient() : MqttClientImpl {
 
 		override fun messageArrived(topic: String?, message: MqttMessage?) {
 			Timber.d("clientCallback.messageArrived | topic: $topic | msg: $message")
+			_latestMessageStateFlow.value = MqttGenericMessage(topic ?: "NO_TOPIC", message?.payload?.toString() ?: "NO_MSG")
 		}
 
 		override fun deliveryComplete(token: IMqttDeliveryToken?) {
@@ -122,6 +124,11 @@ class PahoMqttClient() : MqttClientImpl {
 			//_clientErrorChannel.send(ClientError("Error during disconnect()"))
 			_connectionStateFlow.value = MqttConnectionStatus.IDLE
 		}
+	}
+
+	override fun clearState() {
+		_subscribedTopicsStateFlow.value = listOf()
+		_latestMessageStateFlow.value = null
 	}
 
 	/////////////////////////////////////////////////
