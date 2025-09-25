@@ -2,6 +2,7 @@ package com.piledrive.sample_mqtt.ui.coordinators
 
 import com.piledrive.lib_compose_components.ui.forms.observable.TextFormFieldState
 import com.piledrive.lib_compose_components.ui.forms.validators.Validators
+import com.piledrive.lib_compose_components.ui.lists.selectable.SelectableListCoordinatorGenericReactive
 import com.piledrive.sample_mqtt.mqtt.client.MqttClientImpl
 import com.piledrive.sample_mqtt.mqtt.model.MqttConnectionStatus
 import com.piledrive.sample_mqtt.mqtt.model.MqttGenericMessage
@@ -11,34 +12,34 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-interface MessagesCoordinatorImpl {
+interface MessagesTabCoordinatorImpl {
 	val coroutineScope: CoroutineScope
 	val mqtt: MqttClientImpl
 	val topicInputFormState: TextFormFieldState
-	val activeTopicsState: StateFlow<List<MqttGenericTopic>>
-	val messageInputState: StateFlow<String>
+	val subscribedTopicsState: StateFlow<List<MqttGenericTopic>>
+	val activeTopicSelectionCoordinator: SelectableListCoordinatorGenericReactive<MqttGenericTopic>
+	val messageInputFormState: TextFormFieldState
 	val recentMessagesState: StateFlow<List<MqttGenericMessage>>
-	val onMessageInputUpdated: (String) -> Unit
 	fun subscribeTopic()
 	fun unsubscribeTopic(topic: String)
 	fun sendMessage()
 }
 
-class MessagesCoordinator(
+class MessagesTabCoordinator(
 	override val coroutineScope: CoroutineScope,
 	override val mqtt: MqttClientImpl,
 	initTopicInput: String = "",
 	initActiveTopics: List<String>? = null,
 	initMessageInput: String = "",
 	initRecentMessages: List<MqttGenericMessage> = listOf(),
-) : MessagesCoordinatorImpl {
+) : MessagesTabCoordinatorImpl {
 
 	override val topicInputFormState = TextFormFieldState(
 		mainValidator = Validators.Required<String>(""),
 		externalValidators = listOf(
 			Validators.Custom<String>(
 				runCheck = { strVal ->
-					return@Custom activeTopicsState.value.firstOrNull { it.name == strVal } == null
+					return@Custom subscribedTopicsState.value.firstOrNull { it.name == strVal } == null
 				},
 				errMsg = "Topic already active"
 			)
@@ -46,17 +47,32 @@ class MessagesCoordinator(
 		initialValue = initTopicInput
 	)
 
-	override val activeTopicsState: StateFlow<List<MqttGenericTopic>> = initActiveTopics?.let { topics ->
+	override val subscribedTopicsState: StateFlow<List<MqttGenericTopic>> = initActiveTopics?.let { topics ->
 		MutableStateFlow(topics.map { MqttGenericTopic(it, 1) })
 	} ?: mqtt.subscribedTopicsStateFlow
 
-	private val _messageInputState: MutableStateFlow<String> = MutableStateFlow(initMessageInput)
-	override val messageInputState: StateFlow<String> = _messageInputState
+	override val activeTopicSelectionCoordinator = SelectableListCoordinatorGenericReactive<MqttGenericTopic>(
+		coroutineScope = coroutineScope,
+		optionsSourceFlow = subscribedTopicsState,
+		optionTextMutator = { it.name },
+		optionIdForSelectedCheck = { it.name },
+	)
+
+	override val messageInputFormState = TextFormFieldState(
+		mainValidator = Validators.Required(""),
+		externalValidators = listOf(
+			Validators.Custom<String>(
+				runCheck = { strVal ->
+					activeTopicSelectionCoordinator.selectedOptionState.value != null
+				},
+				errMsg = "Topic selection required"
+			)
+		),
+		initialValue = initMessageInput
+	)
 
 	private val _recentMessagesState: MutableStateFlow<List<MqttGenericMessage>> = MutableStateFlow(initRecentMessages)
 	override val recentMessagesState: StateFlow<List<MqttGenericMessage>> = _recentMessagesState
-
-	override val onMessageInputUpdated: (String) -> Unit = { _messageInputState.value = it }
 
 
 	init {
@@ -94,5 +110,9 @@ class MessagesCoordinator(
 	}
 
 	override fun sendMessage() {
+		val targetTopic = activeTopicSelectionCoordinator.selectedOptionState.value?.name ?: return
+		val message = messageInputFormState.currentValueState.value
+		mqtt.publish(topic = targetTopic, msg = message)
+		messageInputFormState.clear()
 	}
 }

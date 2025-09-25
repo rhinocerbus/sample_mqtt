@@ -12,19 +12,22 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.piledrive.lib_compose_components.ui.forms.observable.TextFormFieldState
+import com.piledrive.lib_compose_components.ui.lists.selectable.SelectableListGeneric
 import com.piledrive.lib_compose_components.ui.theme.custom.AppTheme
 import com.piledrive.sample_mqtt.mqtt.client.PreviewDummyMqttClient
-import com.piledrive.sample_mqtt.ui.coordinators.MessagesCoordinator
-import com.piledrive.sample_mqtt.ui.coordinators.MessagesCoordinatorImpl
+import com.piledrive.sample_mqtt.mqtt.model.MqttGenericTopic
+import com.piledrive.sample_mqtt.ui.coordinators.MessagesTabCoordinator
+import com.piledrive.sample_mqtt.ui.coordinators.MessagesTabCoordinatorImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
 
 @Composable
-fun MessagesTab(modifier: Modifier, messagesCoordinator: MessagesCoordinatorImpl) {
+fun MessagesTab(modifier: Modifier, messagesCoordinator: MessagesTabCoordinatorImpl) {
 	Column(modifier) {
 		TopicInput(messagesCoordinator.topicInputFormState, onSubscribe = { messagesCoordinator.subscribeTopic() })
 		TopicsList(messagesCoordinator)
+		MessageInput(messagesCoordinator.messageInputFormState, onPublish = {messagesCoordinator.sendMessage()})
 		MessagesList(messagesCoordinator)
 	}
 }
@@ -44,22 +47,32 @@ private fun TopicInput(topicInputFormState: TextFormFieldState, onSubscribe: () 
 }
 
 @Composable
-private fun TopicsList(messagesCoordinator: MessagesCoordinatorImpl) {
-	val topics = messagesCoordinator.activeTopicsState.collectAsState()
-
+private fun TopicsList(messagesCoordinator: MessagesTabCoordinatorImpl) {
 	Text("Active topics:")
+	SelectableListGeneric<MqttGenericTopic>(
+		modifier = Modifier,
+		coordinator = messagesCoordinator.activeTopicSelectionCoordinator
+	)
+}
 
-	LazyColumn() {
-		itemsIndexed(items = topics.value, key = { _, topic -> topic.name }) { _, topic ->
-			Row() {
-				Text(topic.name)
-			}
+@Composable
+private fun MessageInput(messageInputFormState: TextFormFieldState, onPublish: () -> Unit) {
+	val messageInput = messageInputFormState.currentValueState.collectAsState()
+	val inputValid = messageInputFormState.isValidState.collectAsState()
+	Row {
+		OutlinedTextField(
+			value = messageInput.value,
+			label = { Text("Message") },
+			onValueChange = { messageInputFormState.submitFieldChange(it) },
+		)
+		Button(enabled = inputValid.value, onClick = { onPublish.invoke() }) {
+			Text("Publish")
 		}
 	}
 }
 
 @Composable
-private fun MessagesList(messagesCoordinator: MessagesCoordinatorImpl) {
+private fun MessagesList(messagesCoordinator: MessagesTabCoordinatorImpl) {
 	val messages = messagesCoordinator.recentMessagesState.collectAsState()
 
 	Text("Recent messages:")
@@ -77,7 +90,7 @@ private fun MessagesList(messagesCoordinator: MessagesCoordinatorImpl) {
 @Composable
 private fun MessagesTabPreview() {
 	AppTheme {
-		val coordinator = MessagesCoordinator(
+		val coordinator = MessagesTabCoordinator(
 			coroutineScope = CoroutineScope(Dispatchers.Default),
 			mqtt = PreviewDummyMqttClient(),
 			initActiveTopics = listOf("topic/a", "topic/b")

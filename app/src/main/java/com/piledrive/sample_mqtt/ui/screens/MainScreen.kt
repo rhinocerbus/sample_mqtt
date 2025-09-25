@@ -16,10 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.piledrive.lib_compose_components.ui.theme.custom.AppTheme
 import com.piledrive.sample_mqtt.mqtt.client.PreviewDummyMqttClient
-import com.piledrive.sample_mqtt.ui.coordinators.MessagesCoordinator
-import com.piledrive.sample_mqtt.ui.coordinators.MessagesCoordinatorImpl
-import com.piledrive.sample_mqtt.ui.coordinators.ServerConnectCoordinator
-import com.piledrive.sample_mqtt.ui.coordinators.ServerConnectCoordinatorImpl
+import com.piledrive.sample_mqtt.ui.coordinators.MessagesTabCoordinator
+import com.piledrive.sample_mqtt.ui.coordinators.MessagesTabCoordinatorImpl
+import com.piledrive.sample_mqtt.ui.coordinators.ServerTabCoordinator
+import com.piledrive.sample_mqtt.ui.coordinators.ServerTabCoordinatorImpl
 import com.piledrive.sample_mqtt.ui.coordinators.TabDestination
 import com.piledrive.sample_mqtt.ui.coordinators.TabDestinations
 import com.piledrive.sample_mqtt.ui.coordinators.TabsCoordinator
@@ -38,16 +38,16 @@ object MainScreen : NavRoute {
 	) {
 		drawContent(
 			viewModel.tabsCoordinator,
-			viewModel.serverConnectCoordinator,
-			viewModel.messagesCoordinator
+			viewModel.serverTabCoordinator,
+			viewModel.messagesTabCoordinator
 		)
 	}
 
 	@Composable
 	fun drawContent(
 		tabsCoordinator: TabsCoordinatorImpl,
-		serverCoordinator: ServerConnectCoordinatorImpl,
-		messagesCoordinator: MessagesCoordinatorImpl
+		serverCoordinator: ServerTabCoordinatorImpl,
+		messagesCoordinator: MessagesTabCoordinatorImpl
 	) {
 		Scaffold(
 			topBar = {
@@ -95,8 +95,8 @@ object MainScreen : NavRoute {
 	private fun BodyContent(
 		modifier: Modifier,
 		tabsCoordinator: TabsCoordinatorImpl,
-		serverCoordinator: ServerConnectCoordinatorImpl,
-		messagesCoordinator: MessagesCoordinatorImpl
+		serverCoordinator: ServerTabCoordinatorImpl,
+		messagesCoordinator: MessagesTabCoordinatorImpl
 	) {
 		val activeTab = tabsCoordinator.activeTabState.collectAsState().value
 		when (activeTab.tab) {
@@ -115,11 +115,11 @@ object MainScreen : NavRoute {
 @Composable
 fun MainPreview() {
 	AppTheme {
-		val connectionCoordinator = ServerConnectCoordinator(
+		val connectionCoordinator = ServerTabCoordinator(
 			coroutineScope = CoroutineScope(Dispatchers.Default),
 			mqtt = PreviewDummyMqttClient()
 		)
-		val messagesCoordinator = MessagesCoordinator(
+		val messagesTabCoordinator = MessagesTabCoordinator(
 			coroutineScope = CoroutineScope(Dispatchers.Default),
 			mqtt = PreviewDummyMqttClient()
 		)
@@ -132,7 +132,7 @@ fun MainPreview() {
 		MainScreen.drawContent(
 			tabsCoordinator = tabsCoordinator,
 			serverCoordinator = connectionCoordinator,
-			messagesCoordinator = messagesCoordinator
+			messagesCoordinator = messagesTabCoordinator
 		)
 	}
 }

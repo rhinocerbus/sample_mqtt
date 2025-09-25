@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-interface ServerConnectCoordinatorImpl {
+interface ServerTabCoordinatorImpl {
 	val coroutineScope: CoroutineScope
 	val mqtt: MqttClientImpl
 	val serverUrlState: StateFlow<String>
@@ -27,7 +27,7 @@ interface ServerConnectCoordinatorImpl {
 	fun attemptDisconnect()
 }
 
-class ServerConnectCoordinator(
+class ServerTabCoordinator(
 	override val coroutineScope: CoroutineScope,
 	override val mqtt: MqttClientImpl,
 	initServerUrl: String = "broker.hivemq.com",
@@ -36,7 +36,7 @@ class ServerConnectCoordinator(
 	initUsername: String = "test90734609-72456987-456",
 	initPassword: String = "",
 	initIsActive: Boolean = false,
-) : ServerConnectCoordinatorImpl {
+) : ServerTabCoordinatorImpl {
 	private val _serverUrlState: MutableStateFlow<String> = MutableStateFlow(initServerUrl)
 	override val serverUrlState: StateFlow<String> = _serverUrlState
 

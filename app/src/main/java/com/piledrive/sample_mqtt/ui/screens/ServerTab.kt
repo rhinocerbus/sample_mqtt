@@ -11,14 +11,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.piledrive.lib_compose_components.ui.theme.custom.AppTheme
 import com.piledrive.sample_mqtt.mqtt.client.PreviewDummyMqttClient
 import com.piledrive.sample_mqtt.mqtt.model.MqttConnectionStatus
-import com.piledrive.sample_mqtt.ui.coordinators.ServerConnectCoordinator
-import com.piledrive.sample_mqtt.ui.coordinators.ServerConnectCoordinatorImpl
+import com.piledrive.sample_mqtt.ui.coordinators.ServerTabCoordinator
+import com.piledrive.sample_mqtt.ui.coordinators.ServerTabCoordinatorImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
 
 @Composable
-fun ServerTab(modifier: Modifier, serverCoordinator: ServerConnectCoordinatorImpl) {
+fun ServerTab(modifier: Modifier, serverCoordinator: ServerTabCoordinatorImpl) {
 	val isEnabled = serverCoordinator.isActiveState.collectAsState().value
 
 	Column(modifier) {
@@ -92,7 +92,7 @@ fun ServerTab(modifier: Modifier, serverCoordinator: ServerConnectCoordinatorImp
 @Composable
 private fun ServerTabPreview() {
 	AppTheme {
-		val connectionCoordinator = ServerConnectCoordinator(
+		val connectionCoordinator = ServerTabCoordinator(
 			coroutineScope = CoroutineScope(Dispatchers.Default),
 			mqtt = PreviewDummyMqttClient()
 		)
