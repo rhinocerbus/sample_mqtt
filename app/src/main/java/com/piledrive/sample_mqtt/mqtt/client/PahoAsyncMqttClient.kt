@@ -25,16 +25,6 @@ import timber.log.Timber
 
 class PahoAsyncMqttClient() : MqttClientImpl {
 
-	val actionListener = object : IMqttActionListener {
-		override fun onSuccess(asyncActionToken: IMqttToken?) {
-			Timber.d("actionListener.onSuccess | token: $asyncActionToken")
-		}
-
-		override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-			Timber.d("actionListener.onFailure | token: $asyncActionToken | exc: $exception")
-		}
-	}
-
 	val messageListener = IMqttMessageListener { topic, message ->
 		Timber.d("messageListener.messageArrived | topic: $topic | msg: $message")
 		_latestMessageStateFlow.value = MqttGenericMessage(topic ?: "NO_TOPIC", message?.toString() ?: "NO_MSG")
@@ -93,8 +83,7 @@ class PahoAsyncMqttClient() : MqttClientImpl {
 	private val _connectionStateFlow: MutableStateFlow<MqttConnectionStatus> = MutableStateFlow(MqttConnectionStatus.IDLE)
 	override val connectionStateFlow: StateFlow<MqttConnectionStatus> = _connectionStateFlow
 
-	override fun connect(url: String, port: Int, clientId: String, user: String, pw: String) {
-		Timber.d("> Connecting to | url: $url | port: $port | clientId: $clientId | user: $user | pw | $pw")
+	override suspend fun connect(url: String, port: Int, clientId: String, user: String, pw: String) {
 		val safeClient = MqttAsyncClient("$url:$port", clientId, MemoryPersistence()).apply {
 			setCallback(clientCallback)
 		}
@@ -109,12 +98,21 @@ class PahoAsyncMqttClient() : MqttClientImpl {
 			_connectionStateFlow.value = MqttConnectionStatus.CONNECTING
 
 			Timber.d(">> Connecting...")
-			safeClient.connect(options)
-			// connect is blocking, so can infer that connection succeeded if no error thrown
-			// todo: look into more async version
-			Timber.d(">> ...Connected")
-			_connectionStateFlow.value = MqttConnectionStatus.CONNECTED
-			client = safeClient
+			safeClient.connect(options, "", object : IMqttActionListener {
+				override fun onSuccess(asyncActionToken: IMqttToken?) {
+					Timber.d("connectListener.onSuccess | token: $asyncActionToken")
+					Timber.d(">> ...Connected")
+					_connectionStateFlow.value = MqttConnectionStatus.CONNECTED
+					client = safeClient
+				}
+
+				override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+					Timber.d("connectListener.onFailure | token: $asyncActionToken | exc: $exception")
+					Timber.d(">> ...Failed")
+					_connectionStateFlow.value = MqttConnectionStatus.IDLE
+				}
+			}
+			)
 		}.onFailure {
 			Timber.w("<< Problem during connection: $it")
 
@@ -124,17 +122,26 @@ class PahoAsyncMqttClient() : MqttClientImpl {
 		}
 	}
 
-	override fun disconnect() {
-		Timber.d("> Disconnecting from server")
+	override suspend fun disconnect() {
 		val safeClient = client ?: run {
 			return
 		}
 
 		runCatching {
 			Timber.d(">> Starting disconnection attempt")
-			safeClient.disconnect()
-			Timber.d("<< Disconnected")
-			_connectionStateFlow.value = MqttConnectionStatus.CLIENT_DISCONNECT
+			safeClient.disconnect("", object : IMqttActionListener {
+				override fun onSuccess(asyncActionToken: IMqttToken?) {
+					Timber.d("disconnectListener.onSuccess | token: $asyncActionToken")
+					Timber.d(">> ...Disconnected")
+					_connectionStateFlow.value = MqttConnectionStatus.CLIENT_DISCONNECT
+				}
+
+				override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+					Timber.d("disconnectListener.onFailure | token: $asyncActionToken | exc: $exception")
+					Timber.d(">> ...Failed")
+					_connectionStateFlow.value = MqttConnectionStatus.IDLE
+				}
+			})
 		}.onFailure {
 			Timber.w("<< Problem during disconnection: $it")
 
@@ -160,7 +167,7 @@ class PahoAsyncMqttClient() : MqttClientImpl {
 	private val _subscribedTopicsStateFlow: MutableStateFlow<List<MqttGenericTopic>> = MutableStateFlow(listOf())
 	override val subscribedTopicsStateFlow: StateFlow<List<MqttGenericTopic>> = _subscribedTopicsStateFlow
 
-	override fun subscribe(topic: String, qos: Int) {
+	override suspend fun subscribe(topic: String, qos: Int) {
 		val safeClient = client ?: run {
 			return
 		}
@@ -175,7 +182,7 @@ class PahoAsyncMqttClient() : MqttClientImpl {
 		}
 	}
 
-	override fun unsubscribe(topic: String) {
+	override suspend fun unsubscribe(topic: String) {
 		val safeClient = client ?: run {
 			return
 		}
@@ -202,7 +209,7 @@ class PahoAsyncMqttClient() : MqttClientImpl {
 	private val _latestMessageStateFlow: MutableStateFlow<MqttGenericMessage?> = MutableStateFlow(null)
 	override val latestMessageStateFlow: StateFlow<MqttGenericMessage?> = _latestMessageStateFlow
 
-	override fun publish(
+	override suspend fun publish(
 		topic: String,
 		msg: String,
 		qos: Int,

@@ -3,6 +3,7 @@ package com.piledrive.sample_mqtt.ui.coordinators
 import com.piledrive.lib_compose_components.ui.forms.observable.TextFormFieldState
 import com.piledrive.lib_compose_components.ui.forms.validators.Validators
 import com.piledrive.lib_compose_components.ui.lists.selectable.SelectableListCoordinatorGenericReactive
+import com.piledrive.sample_mqtt.mqtt.MqttController
 import com.piledrive.sample_mqtt.mqtt.client.MqttClientImpl
 import com.piledrive.sample_mqtt.mqtt.model.MqttConnectionStatus
 import com.piledrive.sample_mqtt.mqtt.model.MqttGenericMessage
@@ -102,17 +103,21 @@ class MessagesTabCoordinator(
 	}
 
 	override fun subscribeTopic() {
-		mqtt.subscribe(topicInputFormState.currentValueState.value, 1)
-		topicInputFormState.submitFieldChange("")
+		coroutineScope.launch {
+			mqtt.subscribe(topicInputFormState.currentValueState.value, 1)
+			topicInputFormState.submitFieldChange("")
+		}
 	}
 
 	override fun unsubscribeTopic(topic: String) {
 	}
 
 	override fun sendMessage() {
-		val targetTopic = activeTopicSelectionCoordinator.selectedOptionState.value?.name ?: return
-		val message = messageInputFormState.currentValueState.value
-		mqtt.publish(topic = targetTopic, msg = message)
-		messageInputFormState.clear()
+		coroutineScope.launch {
+			val targetTopic = activeTopicSelectionCoordinator.selectedOptionState.value?.name ?: return@launch
+			val message = messageInputFormState.currentValueState.value
+			mqtt.publish(topic = targetTopic, msg = message)
+			messageInputFormState.clear()
+		}
 	}
 }

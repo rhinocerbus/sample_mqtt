@@ -1,7 +1,7 @@
 package com.piledrive.sample_mqtt.ui.coordinators
 
-import com.piledrive.sample_mqtt.mqtt.model.MqttConnectionStatus
 import com.piledrive.sample_mqtt.mqtt.client.MqttClientImpl
+import com.piledrive.sample_mqtt.mqtt.model.MqttConnectionStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -66,14 +66,18 @@ class ServerTabCoordinator(
 	init {
 		coroutineScope.launch {
 			mqtt.connectionStateFlow.collect { state ->
-				_isActiveState.value = state in listOf(MqttConnectionStatus.IDLE, MqttConnectionStatus.CLIENT_DISCONNECT, MqttConnectionStatus.SERVER_DISCONNECT)
+				_isActiveState.value = state in listOf(
+					MqttConnectionStatus.IDLE,
+					MqttConnectionStatus.CLIENT_DISCONNECT,
+					MqttConnectionStatus.SERVER_DISCONNECT
+				)
 			}
 		}
 	}
 
 	override fun attemptConnect() {
 		val url = serverUrlState.value
-		val finalUrl = if(url.startsWith("tcp://")) url else "tcp://$url"
+		val finalUrl = if (url.startsWith("tcp://")) url else "tcp://$url"
 		_serverUrlState.value = finalUrl
 
 		val clientId = clientIdState.value
@@ -84,16 +88,20 @@ class ServerTabCoordinator(
 		val finalUser = user.ifBlank { UUID.randomUUID().toString() }
 		_usernameState.value = finalUser
 
-		mqtt.connect(
-			url = finalUrl,
-			port = serverPortState.value,
-			clientId = finalId,
-			user = finalUser,
-			pw = passwordState.value
-		)
+		coroutineScope.launch {
+			mqtt.connect(
+				url = finalUrl,
+				port = serverPortState.value,
+				clientId = finalId,
+				user = finalUser,
+				pw = passwordState.value
+			)
+		}
 	}
 
 	override fun attemptDisconnect() {
-		mqtt.disconnect()
+		coroutineScope.launch {
+			mqtt.disconnect()
+		}
 	}
 }

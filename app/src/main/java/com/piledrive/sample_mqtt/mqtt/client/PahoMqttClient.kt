@@ -1,17 +1,15 @@
 package com.piledrive.sample_mqtt.mqtt.client
 
+import com.piledrive.sample_mqtt.mqtt.MqttControllerCallbacks
 import com.piledrive.sample_mqtt.mqtt.model.MqttClientError
 import com.piledrive.sample_mqtt.mqtt.model.MqttConnectionStatus
 import com.piledrive.sample_mqtt.mqtt.model.MqttGenericMessage
 import com.piledrive.sample_mqtt.mqtt.model.MqttGenericTopic
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.launch
 import org.eclipse.paho.client.mqttv3.IMqttActionListener
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener
@@ -24,7 +22,7 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 import timber.log.Timber
 
 
-class PahoMqttClient(val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Default)) : MqttClientImpl {
+class PahoMqttClient(private val controllerCallbacks: MqttControllerCallbacks) : MqttClientImpl {
 
 	val actionListener = object : IMqttActionListener {
 		override fun onSuccess(asyncActionToken: IMqttToken?) {
@@ -76,7 +74,7 @@ class PahoMqttClient(val coroutineScope: CoroutineScope = CoroutineScope(Dispatc
 	private val _connectionStateFlow: MutableStateFlow<MqttConnectionStatus> = MutableStateFlow(MqttConnectionStatus.IDLE)
 	override val connectionStateFlow: StateFlow<MqttConnectionStatus> = _connectionStateFlow
 
-	override fun connect(url: String, port: Int, clientId: String, user: String, pw: String) {
+	override suspend fun connect(url: String, port: Int, clientId: String, user: String, pw: String) {
 		val safeClient = MqttClient("$url:$port", clientId, MemoryPersistence()).apply {
 			setCallback(clientCallback)
 		}
@@ -86,48 +84,39 @@ class PahoMqttClient(val coroutineScope: CoroutineScope = CoroutineScope(Dispatc
 			password = pw.toCharArray()
 		}
 
-		coroutineScope.launch {
-			Timber.d("> Connecting to | url: $url | port: $port | clientId: $clientId | user: $user | pw | $pw")
-			_connectionStateFlow.value = MqttConnectionStatus.CONNECTING
+		_connectionStateFlow.value = MqttConnectionStatus.CONNECTING
 
-			safeClient.runCatching {
-				Timber.d(">> Connecting...")
-				safeClient.connect(options)
-				0
-			}.onSuccess {
-				Timber.d(">> ...Connected")
-				_connectionStateFlow.value = MqttConnectionStatus.CONNECTED
-				client = safeClient
-			}.onFailure {
-				Timber.w(">> Problem during connection: $it")
-				_clientErrorChannel.send(MqttClientError("Error during connect()"))
-				_connectionStateFlow.value = MqttConnectionStatus.IDLE
-			}
-			Timber.d("<< done")
+		safeClient.runCatching {
+			Timber.d(">> Connecting...")
+			safeClient.connect(options)
+			0
+		}.onSuccess {
+			Timber.d("<< ...Connected")
+			_connectionStateFlow.value = MqttConnectionStatus.CONNECTED
+			client = safeClient
+		}.onFailure {
+			Timber.w("<< Problem during connection: $it")
+			_clientErrorChannel.send(MqttClientError("Error during connect()"))
+			_connectionStateFlow.value = MqttConnectionStatus.IDLE
 		}
 	}
 
-	override fun disconnect() {
-		Timber.d("> Disconnecting from server")
+	override suspend fun disconnect() {
 		val safeClient = client ?: run {
 			return
 		}
 
-		coroutineScope.launch {
-
-			runCatching {
-				Timber.d("> Starting disconnection attempt")
-				safeClient.disconnect()
-			}.onSuccess {
-				Timber.d(">> ...Disconnected")
-				_connectionStateFlow.value = MqttConnectionStatus.CLIENT_DISCONNECT
-			}.onFailure {
-				// error while disconnecting... ok
-				Timber.w(">> Problem during disconnection: $it")
-				_clientErrorChannel.send(MqttClientError("Error during disconnect()"))
-				_connectionStateFlow.value = MqttConnectionStatus.IDLE
-			}
-			Timber.d("<< done")
+		runCatching {
+			Timber.d("> Starting disconnection attempt")
+			safeClient.disconnect()
+		}.onSuccess {
+			Timber.d("<< ...Disconnected")
+			_connectionStateFlow.value = MqttConnectionStatus.CLIENT_DISCONNECT
+		}.onFailure {
+			// error while disconnecting... ok
+			Timber.w("<< Problem during disconnection: $it")
+			_clientErrorChannel.send(MqttClientError("Error during disconnect()"))
+			_connectionStateFlow.value = MqttConnectionStatus.IDLE
 		}
 	}
 
@@ -146,48 +135,43 @@ class PahoMqttClient(val coroutineScope: CoroutineScope = CoroutineScope(Dispatc
 	private val _subscribedTopicsStateFlow: MutableStateFlow<List<MqttGenericTopic>> = MutableStateFlow(listOf())
 	override val subscribedTopicsStateFlow: StateFlow<List<MqttGenericTopic>> = _subscribedTopicsStateFlow
 
-	override fun subscribe(topic: String, qos: Int) {
+	override suspend fun subscribe(topic: String, qos: Int) {
 		val safeClient = client ?: run {
 			return
 		}
 
-		coroutineScope.launch {
-			Timber.d("> Starting subscribe attempt")
-			runCatching {
-				safeClient.subscribe(topic, qos, messageListener)
-			}.onSuccess {
-				Timber.w(">> Subscribe success")
-				val updatedTopics = _subscribedTopicsStateFlow.value + MqttGenericTopic(topic, qos)
-				_subscribedTopicsStateFlow.value = updatedTopics
-			}.onFailure {
-				Timber.w(">> Problem during subscribe: $it")
-				_clientErrorChannel.send(MqttClientError("Error during subscribe()"))
-			}
-			Timber.d("<< done")
+		runCatching {
+			safeClient.subscribe(topic, qos, messageListener)
+		}.onSuccess {
+			Timber.w(">> Subscribe success")
+			val updatedTopics = _subscribedTopicsStateFlow.value + MqttGenericTopic(topic, qos)
+			_subscribedTopicsStateFlow.value = updatedTopics
+		}.onFailure {
+			Timber.w(">> Problem during subscribe: $it")
+			_clientErrorChannel.send(MqttClientError("Error during subscribe()"))
 		}
+		Timber.d("<< done")
 	}
 
-	override fun unsubscribe(topic: String) {
+	override suspend fun unsubscribe(topic: String) {
 		val safeClient = client ?: run {
 			return
 		}
 
-		coroutineScope.launch {
-			Timber.d("> Starting unsubscribe attempt")
-			runCatching {
-				safeClient.unsubscribe(topic)
-			}.onSuccess {
-				Timber.w(">> Unsubscribe success")
-				val updatedSet = _subscribedTopicsStateFlow.value.toMutableList()
-				if (updatedSet.removeIf { it.name == topic }) {
-					_subscribedTopicsStateFlow.value = updatedSet
-				}
-			}.onFailure {
-				Timber.w(">> Problem during unsubscribe: $it")
-				_clientErrorChannel.send(MqttClientError("Error during unsubscribe()"))
+		Timber.d("> Starting unsubscribe attempt")
+		runCatching {
+			safeClient.unsubscribe(topic)
+		}.onSuccess {
+			Timber.w(">> Unsubscribe success")
+			val updatedSet = _subscribedTopicsStateFlow.value.toMutableList()
+			if (updatedSet.removeIf { it.name == topic }) {
+				_subscribedTopicsStateFlow.value = updatedSet
 			}
-			Timber.d("<< done")
+		}.onFailure {
+			Timber.w(">> Problem during unsubscribe: $it")
+			_clientErrorChannel.send(MqttClientError("Error during unsubscribe()"))
 		}
+		Timber.d("<< done")
 	}
 
 	/////////////////////////////////////////////////
@@ -200,7 +184,7 @@ class PahoMqttClient(val coroutineScope: CoroutineScope = CoroutineScope(Dispatc
 	private val _latestMessageStateFlow: MutableStateFlow<MqttGenericMessage?> = MutableStateFlow(null)
 	override val latestMessageStateFlow: StateFlow<MqttGenericMessage?> = _latestMessageStateFlow
 
-	override fun publish(
+	override suspend fun publish(
 		topic: String,
 		msg: String,
 		qos: Int,
@@ -210,24 +194,22 @@ class PahoMqttClient(val coroutineScope: CoroutineScope = CoroutineScope(Dispatc
 			return
 		}
 
-		coroutineScope.launch {
-			Timber.d("> Starting publish attempt")
-			val message = MqttMessage().apply {
-				this.payload = msg.toByteArray()
-				this.qos = qos
-				this.isRetained = retained
-			}
-
-			runCatching {
-				safeClient.publish(topic, message)
-			}.onSuccess {
-				Timber.w(">> publish success")
-			}.onFailure {
-				Timber.w(">> Problem during publish: $it")
-				_clientErrorChannel.send(MqttClientError("Error during publish()"))
-			}
-			Timber.d("<< done")
+		Timber.d("> Starting publish attempt")
+		val message = MqttMessage().apply {
+			this.payload = msg.toByteArray()
+			this.qos = qos
+			this.isRetained = retained
 		}
+
+		runCatching {
+			safeClient.publish(topic, message)
+		}.onSuccess {
+			Timber.w(">> publish success")
+		}.onFailure {
+			Timber.w(">> Problem during publish: $it")
+			_clientErrorChannel.send(MqttClientError("Error during publish()"))
+		}
+		Timber.d("<< done")
 	}
 
 	/////////////////////////////////////////////////

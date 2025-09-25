@@ -8,11 +8,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 interface MqttClientImpl {
-	fun connect(url: String, port: Int, clientId: String, user: String = "", pw: String = "")
-	fun disconnect()
-	fun subscribe(topic: String, qos: Int = 1)
-	fun unsubscribe(topic: String)
-	fun publish(
+	suspend fun connect(url: String, port: Int, clientId: String, user: String = "", pw: String = "")
+	suspend fun disconnect()
+	suspend fun subscribe(topic: String, qos: Int = 1)
+	suspend fun unsubscribe(topic: String)
+	suspend fun publish(
 		topic: String,
 		msg: String,
 		qos: Int = 1,
