@@ -3,7 +3,7 @@ package com.piledrive.sample_mqtt.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.piledrive.sample_mqtt.mqtt.model.MqttConnectionStatus
-import com.piledrive.sample_mqtt.mqtt.controller.MqttController
+import com.piledrive.sample_mqtt.mqtt.MqttController
 import com.piledrive.sample_mqtt.ui.coordinators.MessagesTabCoordinator
 import com.piledrive.sample_mqtt.ui.coordinators.ServerTabCoordinator
 import com.piledrive.sample_mqtt.ui.coordinators.TabDestination

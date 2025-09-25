@@ -1,4 +1,4 @@
-package com.piledrive.sample_mqtt.mqtt.controller
+package com.piledrive.sample_mqtt.mqtt
 
 import com.piledrive.sample_mqtt.mqtt.client.MqttClientImpl
 import com.piledrive.sample_mqtt.mqtt.model.MqttClientError
